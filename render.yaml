@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: driver-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: gunicorn server.wsgi:application --log-file -
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: "localhost,127.0.0.1,.onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: driver-db
+          property: connectionString
+
+databases:
+  - name: driver-db
+    plan: free
