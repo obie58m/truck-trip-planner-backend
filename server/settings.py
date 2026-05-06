@@ -18,10 +18,6 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-insecure-change-me")
 
@@ -132,10 +128,19 @@ if _extra_cors:
 
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
-# Render is always behind HTTPS at the edge. These are safe defaults for most APIs.
-SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "1").lower() in {"1", "true", "yes", "on"}
-SESSION_COOKIE_SECURE = os.environ.get("DJANGO_SESSION_COOKIE_SECURE", "1").lower() in {"1", "true", "yes", "on"}
-CSRF_COOKIE_SECURE = os.environ.get("DJANGO_CSRF_COOKIE_SECURE", "1").lower() in {"1", "true", "yes", "on"}
+_deploy_host_https = os.environ.get("RENDER", "").lower() in {"1", "true", "yes", "on"} or bool(
+    os.environ.get("RENDER_SERVICE_NAME") or os.environ.get("RENDER_EXTERNAL_URL"),
+)
+_secure_default = "1" if (not DEBUG and _deploy_host_https) else "0"
+SECURE_SSL_REDIRECT = (
+    os.environ.get("DJANGO_SECURE_SSL_REDIRECT", _secure_default).lower() in {"1", "true", "yes", "on"}
+)
+SESSION_COOKIE_SECURE = (
+    os.environ.get("DJANGO_SESSION_COOKIE_SECURE", _secure_default).lower() in {"1", "true", "yes", "on"}
+)
+CSRF_COOKIE_SECURE = (
+    os.environ.get("DJANGO_CSRF_COOKIE_SECURE", _secure_default).lower() in {"1", "true", "yes", "on"}
+)
 
 # Keep HSTS disabled by default to avoid accidental lock-in during early testing.
 SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "0"))

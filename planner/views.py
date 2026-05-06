@@ -693,9 +693,25 @@ def plan_trip_view(request):
         )
 
     try:
-        cur = _geocode(current_location)
-        pu = _geocode(pickup_location)
-        do = _geocode(dropoff_location)
+        try:
+            cur = _geocode(current_location)
+            pu = _geocode(pickup_location)
+            do = _geocode(dropoff_location)
+        except requests.exceptions.Timeout:
+            return JsonResponse(
+                {"error": "Geocoding timed out. Try again in a moment."},
+                status=503,
+            )
+        except requests.exceptions.RequestException:
+            return JsonResponse(
+                {
+                    "error": (
+                        "Cannot reach OpenStreetMap geocoding (nominatim.openstreetmap.org) from this "
+                        "server. Check internet access, DNS, VPN, and firewall on the machine running Django."
+                    )
+                },
+                status=503,
+            )
 
         routing_warnings: list[str] = []
         try:
