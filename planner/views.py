@@ -655,6 +655,17 @@ def _fill_timeline_gaps(
     return merged
 
 
+@api_view(["GET", "HEAD"])
+def root_view(_request):
+    return JsonResponse(
+        {
+            "ok": True,
+            "service": "truck-trip-planner-backend",
+            "endpoints": {"health": "/api/health/", "plan": "/api/plan/"},
+        }
+    )
+
+
 @api_view(["GET"])
 def health_view(_request):
     return JsonResponse({"ok": True})
